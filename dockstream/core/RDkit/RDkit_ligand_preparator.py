@@ -130,7 +130,7 @@ class RDkitLigandPreparator(LigandPreparator, BaseModel):
                     writer.write(mol)
                 writer.close()
 
-                os.system(f'/pubhome/xli02/Downloads/ZBH/unicon/unicon -i {rdkit_embed_sdf_path} -o {unicon_sdf_path} -p single -v 0')
+                os.system(f'/pubhome/xli02/Download/ZBH/unicon/unicon -i {rdkit_embed_sdf_path} -o {unicon_sdf_path} -p single -v 0')
 
                 if os.path.getsize(unicon_sdf_path) == 0:
                     self._logger.log(f"The size of {unicon_sdf_path} (converted by {rdkit_embed_sdf_path}, {idx}) is 0.", _LE.WARNING)

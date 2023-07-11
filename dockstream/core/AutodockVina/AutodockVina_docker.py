@@ -227,7 +227,7 @@ class AutodockVina(Docker, BaseModel):
                     idx_to_score[idx] = score
 
                 unicon_sdf_path = gen_temp_file(suffix=".sdf")
-                os.system(f'/pubhome/xli02/Downloads/ZBH/unicon/unicon -i {path_sdf_results} -o {unicon_sdf_path} -p single -v 0')
+                os.system(f'/pubhome/xli02/Download/ZBH/unicon/unicon -i {path_sdf_results} -o {unicon_sdf_path} -p single -v 0')
 
                 if os.path.getsize(unicon_sdf_path) == 0:
                     self._logger.log(f"The size of {unicon_sdf_path} (converted by {path_sdf_results}, {cur_identifier}) is 0.", _LE.WARNING)

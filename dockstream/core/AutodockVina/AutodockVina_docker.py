@@ -123,9 +123,18 @@ class AutodockVina(Docker, BaseModel):
                      _BEE.OBABEL_OUTPUT_FORMAT_PDBQT,
                      "".join([_BEE.OBABEL_O, path]),
                      _BEE.OBABEL_PARTIALCHARGE, _BEE.OBABEL_PARTIALCHARGE_GASTEIGER]
-        self._OpenBabel_executor.execute(command=_BEE.OBABEL,
+        obabel_execution_result = self._OpenBabel_executor.execute(command=_BEE.OBABEL,
                                          arguments=arguments,
                                          check=False)
+        self._logger.log(f"obabel convert ligand.pdb to ligand.pdbqt output: {obabel_execution_result.stdout}.",
+                         _LE.INFO)
+        self._logger.log(f"obabel convert ligand.pdb to ligand.pdbqt error: {obabel_execution_result.stderr}.",
+                         _LE.INFO)
+
+        if os.path.exists(temp_pdb):
+            os.remove(temp_pdb)
+        else:
+            print(f"Can not delete the file {temp_pdb} as it doesn't exists")
 
         if os.path.exists(path):
             return True
@@ -210,21 +219,41 @@ class AutodockVina(Docker, BaseModel):
                 if not os.path.isfile(path_sdf_results) or os.path.getsize(path_sdf_results) == 0:
                     continue
 
-                for molecule in Chem.SDMolSupplier(path_sdf_results, removeHs=False):
+                idx_to_score = {}
+                for idx, molecule in enumerate(Chem.SDMolSupplier(path_sdf_results, removeHs=False, sanitize=False)):
+                    if molecule is None:
+                        continue
+                    score = self._extract_score_from_VinaResult(molecule=molecule)
+                    idx_to_score[idx] = score
+
+                unicon_sdf_path = gen_temp_file(suffix=".sdf")
+                os.system(f'/pubhome/xli02/Downloads/ZBH/unicon/unicon -i {path_sdf_results} -o {unicon_sdf_path} -p single -v 0')
+
+                if os.path.getsize(unicon_sdf_path) == 0:
+                    self._logger.log(f"The size of {unicon_sdf_path} (converted by {path_sdf_results}, {cur_identifier}) is 0.", _LE.WARNING)
+                    continue
+                
+                assert len(idx_to_score) == len(Chem.SDMolSupplier(unicon_sdf_path, removeHs=False))
+                for idx, molecule in enumerate(Chem.SDMolSupplier(unicon_sdf_path, removeHs=False)):
                     if molecule is None:
                         continue
 
                     # extract the score from the AutoDock Vina output and update some tags
-                    score = self._extract_score_from_VinaResult(molecule=molecule)
+                    # score = self._extract_score_from_VinaResult(molecule=molecule)
                     molecule.SetProp("_Name", cur_identifier)
-                    molecule.SetProp(_RKA.SDF_TAG_SCORE, score)
-                    molecule.ClearProp(_ROE.REMARK_TAG)
+                    molecule.SetProp(_RKA.SDF_TAG_SCORE, idx_to_score[idx])
+                    # molecule.ClearProp(_ROE.REMARK_TAG)
 
                     # add molecule to the appropriate ligand
                     for ligand in self.ligands:
                         if ligand.get_identifier() == cur_identifier:
                             ligand.add_conformer(molecule)
                             break
+
+                if os.path.exists(unicon_sdf_path):
+                    os.remove(unicon_sdf_path)
+                else:
+                    self._logger.log(f"Can not delete the file {unicon_sdf_path} as it doesn't exists", _LE.WARNING)
 
             # clean-up
             for path in tmp_output_dirs:
@@ -274,6 +303,10 @@ class AutodockVina(Docker, BaseModel):
         execution_result = self._ADV_executor.execute(command=_EE.VINA,
                                                       arguments=arguments,
                                                       check=True)
+        self._logger.log(f"AutoDock Vina output: {execution_result.stdout}.",
+                         _LE.INFO)
+        self._logger.log(f"AutoDock Vina error: {execution_result.stderr}.",
+                         _LE.INFO)
         self._delay4file_system(path=tmp_pdbqt_docked)
 
         # translate the parsed output PDBQT into an SDF
@@ -281,9 +314,13 @@ class AutodockVina(Docker, BaseModel):
                      _BEE.OBABLE_INPUTFORMAT_PDBQT,
                      _BEE.OBABEL_OUTPUT_FORMAT_SDF,
                      "".join([_BEE.OBABEL_O, output_path_sdf])]
-        self._OpenBabel_executor.execute(command=_BEE.OBABEL,
+        obabel_execution_result = self._OpenBabel_executor.execute(command=_BEE.OBABEL,
                                          arguments=arguments,
                                          check=False)
+        self._logger.log(f"obabel convert docked.pdbqt to docked.sdf output: {obabel_execution_result.stdout}.",
+                         _LE.INFO)
+        self._logger.log(f"obabel convert docked.pdbqt to docked.sdf error: {obabel_execution_result.stderr}.",
+                         _LE.INFO)
         self._delay4file_system(path=output_path_sdf)
 
     def write_docked_ligands(self, path, mode="all"):

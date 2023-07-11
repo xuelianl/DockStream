@@ -15,6 +15,8 @@ from dockstream.utils.enums.RDkit_enums import RDkitLigandPreparationEnum
 from dockstream.utils.smiles import to_mol
 from dockstream.core.ligand.ligand import Ligand
 
+from dockstream.utils.general_utils import gen_temp_file
+
 _LP = RDkitLigandPreparationEnum()
 
 # This class is inspired / based on code written by
@@ -113,6 +115,37 @@ class RDkitLigandPreparator(LigandPreparator, BaseModel):
             # add hydrogens to the molecule
             if self.parameters.protonate:
                 ligand = Chem.AddHs(ligand, addCoords=True)
+
+                # unicon predict protonation stat
+                rdkit_embed_sdf_path = gen_temp_file(suffix=".sdf")
+                unicon_sdf_path = gen_temp_file(suffix=".sdf")
+
+                writer = Chem.SDWriter(rdkit_embed_sdf_path)
+                # ligand.add_tags_to_molecule()
+                if ligand is not None:
+                    mol = deepcopy(ligand)
+                    # mol.SetProp("_Name", ligand.get_identifier())
+                    writer.write(mol)
+                writer.close()
+
+                os.system(f'/pubhome/xli02/Downloads/ZBH/unicon/unicon -i {rdkit_embed_sdf_path} -o {unicon_sdf_path} -p single -v 0')
+
+                if os.path.getsize(unicon_sdf_path) == 0:
+                    self._logger.log(f"The size of {unicon_sdf_path} (converted by {rdkit_embed_sdf_path}, {idx}) is 0.", _LE.WARNING)
+                    continue
+
+                ligand = Chem.SDMolSupplier(unicon_sdf_path, removeHs=False)[0]
+                if ligand is None:
+                    failed += 1
+                    continue
+
+                for tmp_f in [rdkit_embed_sdf_path, unicon_sdf_path]:
+                    if os.path.exists(tmp_f):
+                        os.remove(tmp_f)
+                    else:
+                        self._logger.log(f"Can not delete the file {tmp_f} as it doesn't exists",
+                             _LE.WARNING)
+
 
             self.ligands[idx] = Ligand(smile=lig_obj.get_smile(),
                                        original_smile=lig_obj.get_original_smile(),

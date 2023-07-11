@@ -85,6 +85,7 @@ class LigandPreparator(BaseModel):
     align: Optional[AlignInput] = None
     output: Optional[Output]
     ligands: Optional[List] = None
+    parallel_njobs: Optional[int] = 20 # parallel ncores for db2_converter
 
     _logger = PrivateAttr()
     _references: List = PrivateAttr(default=None)

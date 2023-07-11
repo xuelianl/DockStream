@@ -89,6 +89,8 @@ class RDkitLigandPreparator(LigandPreparator, BaseModel):
 
             # note, that parameter "useRandomCoords" needs to be "True", which is often required for larger molecules
             # as the embedding sometimes fails
+            # self._logger.log(idx, _LE.INFO)
+            ligand = Chem.AddHs(ligand)
             embed_code = AllChem.EmbedMolecule(ligand, randomSeed=42, useRandomCoords=True)
 
             # while MMFF sometimes gives better geometries, UFF has a wider range of parameters and thus will fail less

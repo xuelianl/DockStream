@@ -34,7 +34,8 @@ class AutodockVinaExecutablesEnum:
     VINA_HELP = "--help"                               # display usage summary
     VINA_HELP_ADVANCED = "--help_advanced"             # display usage summary (with all options)
     VINA_VERSION = "--version"                         # diplay program version
-    VINA_VERSION_IDENTIFICATION_STRING = "AutoDock Vina 1.1.2"   # string, which needs to be present in help output in
+    # VINA_VERSION_IDENTIFICATION_STRING = "AutoDock Vina 1.1.2"   # string, which needs to be present in help output in
+    VINA_VERSION_IDENTIFICATION_STRING = "AutoDock Vina v1.2.3"
                                                                  # order to assume "AutoDock Vina" can be properly used
     VINA_CONFIGURATION = "--config"                    # path to configuration file, where options below can be put
 

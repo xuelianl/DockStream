@@ -38,6 +38,7 @@ class DockingConfigurationEnum:
     BACKEND_AUTODOCKVINA = "AutoDockVina"
     BACKEND_GOLD = "Gold"
     BACKEND_GLIDE = "Glide"
+    BACKEND_DOCK37 = "Dock37"
 
     # structural alignment to reference
     # ---------

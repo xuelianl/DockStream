@@ -59,6 +59,7 @@ class LigandPreparationEnum:
     TYPE_LIGPREP = "Ligprep"
     TYPE_GOLD = "Gold"
     TYPE_OMEGA = "Omega"
+    TYPE_DB2 = "db2_converter"
 
     # structural alignment to reference ("internal" method)
     # ---------
@@ -76,6 +77,9 @@ class LigandPreparationEnum:
     ALIGN_FAIL_ACTION = "fail_action"
     ALIGN_FAIL_DISCARD = "discard"
     ALIGN_FAIL_KEEP = "keep"
+
+    # # parallel ncores for db2_converter
+    # PARALLEL_NJOBS = "parallel_njobs"
 
     # try to find the internal value and return
     def __getattr__(self, name):

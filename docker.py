@@ -12,6 +12,7 @@ from dockstream.core.rDock.rDock_docker import rDock
 from dockstream.core.OpenEye.OpenEye_docker import OpenEye
 from dockstream.core.Schrodinger.Glide_docker import Glide
 from dockstream.core.AutodockVina.AutodockVina_docker import AutodockVina
+from dockstream.core.Dock37.Dock37_docker import Dock37
 from dockstream.core.OpenEyeHybrid.OpenEyeHybrid_docker import OpenEyeHybrid
 
 from dockstream.utils.entry_point_functions.header import initialize_logging, set_environment
@@ -159,6 +160,8 @@ if __name__ == "__main__":
                     docker = Gold(**docking_run)
                 elif docking_run[_DE.BACKEND] == _DE.BACKEND_AUTODOCKVINA:
                     docker = AutodockVina(**docking_run)
+                elif docking_run[_DE.BACKEND] == _DE.BACKEND_DOCK37:
+                    docker = Dock37(**docking_run)
                 else:
                     raise Exception("Backend is unknown.")
 

@@ -30,6 +30,7 @@ class Db2_converterParameters(BaseModel):
     sampletp: Optional[bool] = False
     checkstereo: Optional[bool] = False
     useff: Optional[bool] = False
+    db2_method: Optional[str] = 'conformator'
 
 
 class Db2_converter(LigandPreparator, BaseModel):
@@ -97,12 +98,12 @@ class Db2_converter(LigandPreparator, BaseModel):
             for lig in self.ligands:
                 f.write(lig.get_smile() + " " + lig.get_identifier() + "\n")
 
-        os.system(f"cwd=`pwd`; cd {tmp_dir}; cat {all_smi_path} |parallel -j {self.parallel_njobs} -I line -k 'timeout 3600 bash /pubhome/xli02/project/mpro/DockStream/dockstream/core/db2_converter/run_db2_converter.sh line {self.parameters.max_conf} {self.parameters.sampletp} {self.parameters.checkstereo} {self.parameters.useff}'; cd $cwd")
+        os.system(f"cwd=`pwd`; cd {tmp_dir}; cat {all_smi_path} |parallel -I line -k 'timeout 3600 bash /pubhome/xli02/project/mpro/DockStream/dockstream/core/db2_converter/run_db2_converter.sh line {self.parameters.max_conf} {tmp_dir}/input {self.parameters.db2_method} {self.parameters.checkstereo} {self.parameters.useff} {self.parameters.sampletp}'; cd $cwd")
         # os.system(f"cwd=`pwd`; cd /tmp/xli02/tmporasrb3g/; cat /tmp/xli02/tmporasrb3g/test.smi |parallel -I line -k 'bash /pubhome/xli02/project/mpro/test/test_dock_reinvent/test_db2_converter/run_db2_converter.sh line 1000 False False False'; cd $cwd")
 
 
         for idx, lig_obj in enumerate(ligand_list):
-            if not os.path.exists(f'{tmp_dir}/{lig_obj.get_ligand_number()}/all.db2.gz'):
+            if not os.path.exists(f'{tmp_dir}/input/{lig_obj.get_identifier()}.db2.gz'):
                 self._logger.log(f"Could not embed molecule number {lig_obj.get_ligand_number()} (smile: {lig_obj.get_smile()}) - no 3D coordinates generated.",
                                     _LE.DEBUG)
                 failed += 1
@@ -112,7 +113,7 @@ class Db2_converter(LigandPreparator, BaseModel):
                                        original_smile=lig_obj.get_original_smile(),
                                        ligand_number=lig_obj.get_ligand_number(),
                                        enumeration=lig_obj.get_enumeration(),
-                                       molecule=f'{tmp_dir}/{lig_obj.get_ligand_number()}/all.db2.gz',
+                                       molecule=f'{tmp_dir}/input/{lig_obj.get_identifier()}.db2.gz',
                                        mol_type=lig_obj.get_mol_type(),
                                        name=lig_obj.get_name())
             succeeded += 1

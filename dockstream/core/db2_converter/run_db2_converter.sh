@@ -31,5 +31,5 @@ then
 fi
 
 # echo $command
-$command
-conda deactivate &> db2_${method}_$name.log
+$command &> db2_${method}_$name.log
+conda deactivate

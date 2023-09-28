@@ -13,7 +13,7 @@ conda activate basic
 name=`echo $line|awk '{print $2}'|awk -F ':' '{print $1}'`
 echo $line > $name.smi
 # /pubhome/xli02/scripts/db2_converter/ligand/generate/build_ligand.sh $name $max_conf $sampletp $checkstereo $useff &> conformator_$name.log
-command="build_ligand -i $name.smi -m $max_conf --workingpath $workingpath --outputpath $workingpath --method $method"
+command="OMP_NUM_THREADS=1 build_ligand -i $name.smi -m $max_conf --workingpath $workingpath --outputpath $workingpath --method $method"
 if [ $checkstereo == 'True' ];
 then
     command+=" -c"
